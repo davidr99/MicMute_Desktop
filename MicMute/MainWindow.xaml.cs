@@ -76,10 +76,15 @@ namespace MicMute
                 DeviceModel deviceModel = (deviceList.SelectedItem as DeviceModel)!;
                 var selectedDevice = LibUsbDevice.AllDevices.Where(d => d.DevicePath == deviceModel.Path).FirstOrDefault()!;
 
-                if (!selectedDevice.Open(out usbDevice))
+                if (selectedDevice != null && !selectedDevice.Open(out usbDevice))
                 {
                     MessageBox.Show("Error opening USB device!");
                 }
+                else if (selectedDevice == null)
+                {
+                    MessageBox.Show("Error Could not find device!");
+                }
+
 
                 muted = GetMicStatus();
                 ConnectUSB();
