@@ -20,6 +20,8 @@ using MicMute.Models;
 using System.ComponentModel;
 using MicMute.Objects;
 using CoreAudio;
+using System.Timers;
+using System.Runtime.InteropServices;
 
 namespace MicMute
 {
@@ -35,10 +37,25 @@ namespace MicMute
         UsbEndpointWriter writer = null!;
 
         bool muted = false;
+        LEDEnum ledColor = 0;
+        MMDevice mic = null!;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            mic = getPrimaryMicDevice();
+
+            if (mic != null)
+            {
+                mic.AudioEndpointVolume!.OnVolumeNotification += AudioEndpointVolume_OnVolumeNotification;
+            }
+        }
+
+        private void MicCheckTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            muted = GetMicStatus();
+            UpdateLED();
         }
 
         private void btnLoadDevices_Click(object sender, RoutedEventArgs e)
@@ -91,11 +108,44 @@ namespace MicMute
 
         private void Reader_DataReceived(object? sender, EndpointDataEventArgs e)
         {
-            if (e.Buffer[0] == 0x01 && e.Buffer[3] == 0x10)
+            var keyboardMessage = ReadBuffer<USBKeyboardMessage>(e.Buffer);
+            if (keyboardMessage.ReportId == 0x01 && keyboardMessage.Key == 0x10)
             {
-                muted = !muted;
+                var mic = getPrimaryMicDevice();
+
+                if (mic != null && mic.AudioEndpointVolume != null)
+                {
+                    mic.AudioEndpointVolume.Mute = !mic.AudioEndpointVolume.Mute;
+                    muted = mic.AudioEndpointVolume.Mute;
+                }
+
                 UpdateLED();
             }
+        }
+
+        public static T ReadBuffer<T>(byte[] data) where T : struct
+        {
+            T dataObject;
+            int size = Marshal.SizeOf<T>();
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.Copy(data, 0, ptr, size);
+            dataObject = (T) Marshal.PtrToStructure(ptr, typeof(T))!;
+            Marshal.FreeHGlobal(ptr);
+
+            return dataObject;
+        }
+
+        public static byte[] WriteBuffer<T>(T status) where T : struct
+        {
+            int size = Marshal.SizeOf<T>();
+            byte[] packet = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(status));
+            Marshal.StructureToPtr<T>(status, ptr, true);
+            Marshal.Copy(ptr, packet, 0, size);
+            Marshal.FreeHGlobal(ptr);
+
+            return packet;
         }
 
         private void UpdateLED()
@@ -114,12 +164,6 @@ namespace MicMute
                     tbiNotification.Icon = new System.Drawing.Icon(Application.GetResourceStream(iconUri).Stream);
                     WriteLED(LEDEnum.Green);
                 }
-
-                var mic = getPrimaryMicDevice();
-                if (mic != null)
-                {
-                    mic!.AudioEndpointVolume!.Mute = muted;
-                }
             }
         }
 
@@ -127,9 +171,43 @@ namespace MicMute
         {
             if (usbDevice != null && usbDevice.IsOpen && !writer.IsDisposed)
             {
-                writer.SubmitAsyncTransfer(new byte[] {
-                    0x05, (byte) ledStatus
-                }, 0, 2, 1000, out UsbTransfer usbTransfer);
+                byte[] buffer = WriteBuffer<USBLEDStatus>(new USBLEDStatus()
+                {
+                    ReportID = 0x05,
+                    Status = ledStatus
+                });
+
+                writer.SubmitAsyncTransfer(buffer, 0, 2, 1000, out UsbTransfer usbTransfer);
+
+                this.Dispatcher.Invoke(() =>
+                {
+                    var color = Color.FromRgb(
+                            (byte)(ledStatus.HasFlag(LEDEnum.Red) ? 255 : 0),
+                            (byte)(ledStatus.HasFlag(LEDEnum.Green) ? 255 : 0),
+                            (byte)(ledStatus.HasFlag(LEDEnum.Blue) ? 255 : 0));
+
+                    ledDisplay.Fill = new SolidColorBrush(color);
+                });
+            }
+        }
+
+        private void deviceList_Loaded(object sender, RoutedEventArgs e)
+        {
+            deviceList.Items.Clear();
+
+            var devList = LibUsbDotNet.LibUsb.LibUsbDevice.AllDevices.Where(d => d is LibUsbRegistry && MyUsbFinder.Check(d));
+
+            devList.Select(d => new DeviceModel()
+            {
+                Name = d.Name,
+                Path = d.DevicePath
+            }).ToList().ForEach(d => deviceList.Items.Add(d));
+
+            if (deviceList.Items.Count > 0)
+            {
+                usbDevice = devList.FirstOrDefault()!.Device;
+                muted = GetMicStatus();
+                ConnectUSB();
             }
         }
 
@@ -137,18 +215,26 @@ namespace MicMute
 
         private void btnRed_Click(object sender, RoutedEventArgs e)
         {
-            WriteLED(LEDEnum.Red);
+            ledColor = ledColor ^ LEDEnum.Red;
+
+            WriteLED(ledColor);
         }
 
         private void btnGreen_Click(object sender, RoutedEventArgs e)
         {
-            WriteLED(LEDEnum.Green);
+            ledColor = ledColor ^ LEDEnum.Green;
+
+            WriteLED(ledColor);
         }
 
         private void btnBlue_Click(object sender, RoutedEventArgs e)
         {
-            WriteLED(LEDEnum.Blue);
+            ledColor = ledColor ^ LEDEnum.Blue;
+
+            WriteLED(ledColor);
         }
+
+        #region Mic Stuff
 
         private MMDevice getPrimaryMicDevice()
         {
@@ -172,25 +258,13 @@ namespace MicMute
             return micStatus;
         }
 
-        private void deviceList_Loaded(object sender, RoutedEventArgs e)
+        private void AudioEndpointVolume_OnVolumeNotification(AudioVolumeNotificationData data)
         {
-            deviceList.Items.Clear();
-
-            var devList = LibUsbDotNet.LibUsb.LibUsbDevice.AllDevices.Where(d => d is LibUsbRegistry && MyUsbFinder.Check(d));
-
-            devList.Select(d => new DeviceModel()
-            {
-                Name = d.Name,
-                Path = d.DevicePath
-            }).ToList().ForEach(d => deviceList.Items.Add(d));
-
-            if (deviceList.Items.Count > 0)
-            {
-                usbDevice = devList.FirstOrDefault()!.Device;
-                muted = GetMicStatus();
-                ConnectUSB();
-            }
+            muted = data.Muted;
+            UpdateLED();
         }
+
+        #endregion Mic Stuff
 
         #region Tray Stuff
         private void tbiNotification_TrayMouseDoubleClick(object sender, RoutedEventArgs e)

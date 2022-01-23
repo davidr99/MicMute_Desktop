@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MicMute.Objects
 {
     [Flags]
-    internal enum LEDEnum
+    public enum LEDEnum : byte
     {
         Red = 0x01,
         Green = 0x02,

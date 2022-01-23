@@ -6,22 +6,22 @@
         xmlns:local="clr-namespace:MicMute"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="MainWindow" Height="172" Width="269" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False">
+        Title="Mute Mic" Height="172" Width="311" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False">
     <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,0,3">
         <Grid.RowDefinitions>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="127*"/>
-            <ColumnDefinition Width="79*"/>
-            <ColumnDefinition Width="63*"/>
+            <ColumnDefinition Width="126*"/>
+            <ColumnDefinition Width="76*"/>
+            <ColumnDefinition Width="109*"/>
         </Grid.ColumnDefinitions>
         <ListBox x:Name="deviceList" Margin="10,10,10,52" d:ItemsSource="{d:SampleData ItemCount=5}" Grid.ColumnSpan="2" Loaded="deviceList_Loaded"/>
         <Button x:Name="btnLoadDevices" Content="Load Devices..." Margin="0,106,0,0" Click="btnLoadDevices_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Center" Width="106"/>
-        <Button x:Name="btnSelectDevice" Content="Select" Margin="0,106,0,0" RenderTransformOrigin="-0.097,-0.671" Click="btnSelectDevice_Click" VerticalAlignment="Top" HorizontalAlignment="Center" Width="59" Height="20" Grid.Column="1"/>
-        <Button x:Name="btnRed" Content="Red" Margin="0,19,21,0" VerticalAlignment="Top" Click="btnRed_Click" Background="Red" Height="20" HorizontalAlignment="Right" Width="36" Grid.Column="2"/>
-        <Button x:Name="btnGreen" Content="Green" Margin="0,44,21,0" VerticalAlignment="Top" RenderTransformOrigin="0.169,0.725" Click="btnGreen_Click" Background="#FF2BFF00" Height="20" HorizontalAlignment="Right" Width="36" Grid.Column="2"/>
-        <Button x:Name="btnBlue" Content="Blue" Margin="0,69,21,0" VerticalAlignment="Top" RenderTransformOrigin="0.076,0.689" Background="#FF001BFF" Click="btnBlue_Click" Height="20" HorizontalAlignment="Right" Width="36" Grid.Column="2"/>
+        <Button x:Name="btnSelectDevice" Content="Select" Margin="0,106,0,0" RenderTransformOrigin="-0.097,-0.671" Click="btnSelectDevice_Click" VerticalAlignment="Top" HorizontalAlignment="Center" Width="58" Height="20" Grid.Column="1"/>
+        <Button x:Name="btnRed" Content="Red" Margin="18,27,0,0" VerticalAlignment="Top" Click="btnRed_Click" Background="Red" Height="20" HorizontalAlignment="Left" Width="36" Grid.Column="2"/>
+        <Button x:Name="btnGreen" Content="Green" Margin="18,52,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.169,0.725" Click="btnGreen_Click" Background="#FF2BFF00" Height="20" HorizontalAlignment="Left" Width="36" Grid.Column="2"/>
+        <Button x:Name="btnBlue" Content="Blue" Margin="18,77,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.076,0.689" Background="#FF001BFF" Click="btnBlue_Click" Height="20" HorizontalAlignment="Left" Width="36" Grid.Column="2"/>
         <tb:TaskbarIcon
                     x:Name="tbiNotification"
                     Visibility="Visible"
@@ -36,5 +36,6 @@
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
+        <Rectangle x:Name="ledDisplay" Grid.Column="2" HorizontalAlignment="Left" Height="20" Margin="66,53,0,0" Stroke="Black" VerticalAlignment="Top" Width="20" RadiusX="10" RadiusY="10" RenderTransformOrigin="0.625,1.646"/>
     </Grid>
 </Window>
