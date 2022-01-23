@@ -45,13 +45,11 @@ namespace MicMute
         {
             deviceList.Items.Clear();
 
-            LibUsbDotNet.LibUsb.LibUsbDevice.AllDevices.Where(d=>d is LibUsbRegistry && MyUsbFinder.Check(d)).Select(d => new DeviceModel()
+            LibUsbDotNet.LibUsb.LibUsbDevice.AllDevices.Where(d => d is LibUsbRegistry && MyUsbFinder.Check(d)).Select(d => new DeviceModel()
             {
                 Name = d.Name,
                 Path = d.DevicePath
             }).ToList().ForEach(d => deviceList.Items.Add(d));
-
-            var devices = new MMDeviceEnumerator();
         }
 
         private void btnSelectDevice_Click(object sender, RoutedEventArgs e)
@@ -65,8 +63,15 @@ namespace MicMute
                 {
                     MessageBox.Show("Error opening USB device!");
                 }
-            }
 
+                muted = GetMicStatus();
+                ConnectUSB();
+            }
+        }
+
+        #region USB Stuff
+        private void ConnectUSB()
+        {
             if (usbDevice != null && usbDevice.IsOpen)
             {
                 ((IUsbDevice)usbDevice).SetConfiguration(1);
@@ -93,31 +98,42 @@ namespace MicMute
             }
         }
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            if (usbDevice != null)
-            {
-                usbDevice.Close();
-            }
-            base.OnClosing(e);
-        }
-
         private void UpdateLED()
         {
             if (usbDevice != null && usbDevice.IsOpen)
             {
                 if (muted)
                 {
+                    Uri iconUri = new Uri("pack://application:,,,/icons/muted.ico", UriKind.RelativeOrAbsolute);
+                    tbiNotification.Icon = new System.Drawing.Icon(Application.GetResourceStream(iconUri).Stream);
                     WriteLED(LEDEnum.Red);
                 }
                 else
                 {
+                    Uri iconUri = new Uri("pack://application:,,,/icons/unmuted.ico", UriKind.RelativeOrAbsolute);
+                    tbiNotification.Icon = new System.Drawing.Icon(Application.GetResourceStream(iconUri).Stream);
                     WriteLED(LEDEnum.Green);
                 }
 
-                getPrimaryMicDevice().AudioEndpointVolume.Mute = muted;
+                var mic = getPrimaryMicDevice();
+                if (mic != null)
+                {
+                    mic!.AudioEndpointVolume!.Mute = muted;
+                }
             }
         }
+
+        private void WriteLED(LEDEnum ledStatus)
+        {
+            if (usbDevice != null && usbDevice.IsOpen && !writer.IsDisposed)
+            {
+                writer.SubmitAsyncTransfer(new byte[] {
+                    0x05, (byte) ledStatus
+                }, 0, 2, 1000, out UsbTransfer usbTransfer);
+            }
+        }
+
+        #endregion USB Stuff
 
         private void btnRed_Click(object sender, RoutedEventArgs e)
         {
@@ -134,17 +150,6 @@ namespace MicMute
             WriteLED(LEDEnum.Blue);
         }
 
-        private void WriteLED(LEDEnum ledStatus)
-        {
-            if (usbDevice != null && usbDevice.IsOpen && !writer.IsDisposed)
-            {
-                writer.SubmitAsyncTransfer(new byte[] {
-                    0x05, (byte) ledStatus
-                }, 0, 2, 1000, out UsbTransfer usbTransfer);
-            }
-        }
-
-
         private MMDevice getPrimaryMicDevice()
         {
             var enumerator = new MMDeviceEnumerator();
@@ -152,5 +157,81 @@ namespace MicMute
 
             return result;
         }
+
+        private bool GetMicStatus()
+        {
+            bool micStatus = false;
+
+            var mic = getPrimaryMicDevice();
+
+            if (mic != null)
+            {
+                micStatus = mic.AudioEndpointVolume!.Mute;
+            }
+
+            return micStatus;
+        }
+
+        private void deviceList_Loaded(object sender, RoutedEventArgs e)
+        {
+            deviceList.Items.Clear();
+
+            var devList = LibUsbDotNet.LibUsb.LibUsbDevice.AllDevices.Where(d => d is LibUsbRegistry && MyUsbFinder.Check(d));
+
+            devList.Select(d => new DeviceModel()
+            {
+                Name = d.Name,
+                Path = d.DevicePath
+            }).ToList().ForEach(d => deviceList.Items.Add(d));
+
+            if (deviceList.Items.Count > 0)
+            {
+                usbDevice = devList.FirstOrDefault()!.Device;
+                muted = GetMicStatus();
+                ConnectUSB();
+            }
+        }
+
+        #region Tray Stuff
+        private void tbiNotification_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Focus();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (usbDevice != null)
+            {
+                usbDevice.Close();
+            }
+            tbiNotification.Dispose();
+            base.OnClosing(e);
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+
+            if (this.WindowState == WindowState.Minimized)
+            {
+                this.Hide();
+            }
+        }
+
+        private void MenuItem_Click_Exit(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void MenuItem_Click_Open(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Focus();
+        }
+
+        #endregion Tray Stuff
     }
 }

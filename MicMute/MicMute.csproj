@@ -8,8 +8,34 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="icons\microphone-black-shape.png" />
+    <None Remove="icons\muted.ico" />
+    <None Remove="icons\unmuted.ico" />
+    <None Remove="microphone-black-shape.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icons\microphone-black-shape.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="icons\muted.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icons\unmuted.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CoreAudio" Version="1.10.0" />
+    <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="microphone-black-shape.png" />
   </ItemGroup>
 
 </Project>

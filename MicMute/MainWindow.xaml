@@ -4,23 +4,37 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MicMute"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="MainWindow" Height="172" Width="269">
+        Title="MainWindow" Height="172" Width="269" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False">
     <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,0,3">
-        <Grid.RenderTransform>
-            <TransformGroup>
-                <ScaleTransform/>
-                <SkewTransform/>
-                <RotateTransform Angle="0.024"/>
-                <TranslateTransform/>
-            </TransformGroup>
-        </Grid.RenderTransform>
-        <Button x:Name="btnLoadDevices" Content="Load Devices..." HorizontalAlignment="Left" Margin="25,106,0,0" VerticalAlignment="Top" Click="btnLoadDevices_Click"/>
-        <ListBox x:Name="deviceList" HorizontalAlignment="Left" Height="91" Margin="25,10,0,0" VerticalAlignment="Top" Width="149" d:ItemsSource="{d:SampleData ItemCount=5}"/>
-        <Button x:Name="btnSelectDevice" Content="Select" HorizontalAlignment="Left" Margin="111,106,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.097,-0.671" Width="63" Click="btnSelectDevice_Click"/>
-        <Button x:Name="btnRed" Content="Red" HorizontalAlignment="Left" Margin="191,19,0,0" VerticalAlignment="Top" Click="btnRed_Click" Width="35" Background="Red"/>
-        <Button x:Name="btnGreen" Content="Green" HorizontalAlignment="Left" Margin="190,44,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.169,0.725" Click="btnGreen_Click" Background="#FF2BFF00"/>
-        <Button x:Name="btnBlue" Content="Blue" HorizontalAlignment="Left" Margin="190,69,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.076,0.689" Width="36" Background="#FF001BFF" Click="btnBlue_Click"/>
-
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="127*"/>
+            <ColumnDefinition Width="79*"/>
+            <ColumnDefinition Width="63*"/>
+        </Grid.ColumnDefinitions>
+        <ListBox x:Name="deviceList" Margin="10,10,10,52" d:ItemsSource="{d:SampleData ItemCount=5}" Grid.ColumnSpan="2" Loaded="deviceList_Loaded"/>
+        <Button x:Name="btnLoadDevices" Content="Load Devices..." Margin="0,106,0,0" Click="btnLoadDevices_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Center" Width="106"/>
+        <Button x:Name="btnSelectDevice" Content="Select" Margin="0,106,0,0" RenderTransformOrigin="-0.097,-0.671" Click="btnSelectDevice_Click" VerticalAlignment="Top" HorizontalAlignment="Center" Width="59" Height="20" Grid.Column="1"/>
+        <Button x:Name="btnRed" Content="Red" Margin="0,19,21,0" VerticalAlignment="Top" Click="btnRed_Click" Background="Red" Height="20" HorizontalAlignment="Right" Width="36" Grid.Column="2"/>
+        <Button x:Name="btnGreen" Content="Green" Margin="0,44,21,0" VerticalAlignment="Top" RenderTransformOrigin="0.169,0.725" Click="btnGreen_Click" Background="#FF2BFF00" Height="20" HorizontalAlignment="Right" Width="36" Grid.Column="2"/>
+        <Button x:Name="btnBlue" Content="Blue" Margin="0,69,21,0" VerticalAlignment="Top" RenderTransformOrigin="0.076,0.689" Background="#FF001BFF" Click="btnBlue_Click" Height="20" HorizontalAlignment="Right" Width="36" Grid.Column="2"/>
+        <tb:TaskbarIcon
+                    x:Name="tbiNotification"
+                    Visibility="Visible"
+                    ToolTipText="Mic Status"
+                    MenuActivation="LeftOrRightClick"
+                    PopupActivation="DoubleClick" Margin="0,143,14,0" Grid.ColumnSpan="2" IconSource="/Icons/muted.ico" TrayMouseDoubleClick="tbiNotification_TrayMouseDoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Open" Click="MenuItem_Click_Open"></MenuItem>
+                    <Separator></Separator>
+                    <MenuItem Header="Exit" Click="MenuItem_Click_Exit"></MenuItem>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
     </Grid>
 </Window>
