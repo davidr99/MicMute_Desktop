@@ -13,8 +13,8 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="126*"/>
-            <ColumnDefinition Width="76*"/>
-            <ColumnDefinition Width="109*"/>
+            <ColumnDefinition Width="87*"/>
+            <ColumnDefinition Width="98*"/>
         </Grid.ColumnDefinitions>
         <ListBox x:Name="deviceList" Margin="10,10,10,52" d:ItemsSource="{d:SampleData ItemCount=5}" Grid.ColumnSpan="2" Loaded="deviceList_Loaded"/>
         <Button x:Name="btnLoadDevices" Content="Load Devices..." Margin="0,106,0,0" Click="btnLoadDevices_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Center" Width="106"/>
@@ -37,5 +37,7 @@
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
         <Rectangle x:Name="ledDisplay" Grid.Column="2" HorizontalAlignment="Left" Height="20" Margin="66,53,0,0" Stroke="Black" VerticalAlignment="Top" Width="20" RadiusX="10" RadiusY="10" RenderTransformOrigin="0.625,1.646"/>
+        <CheckBox x:Name="cbUseSerial" Content="User Serial" HorizontalAlignment="Center" Margin="0,109,0,0" VerticalAlignment="Top" Grid.Column="2" Click="cbUseSerial_Click" Height="15" Width="76"/>
+        <Button x:Name="btnDisconnect" Grid.Column="1" Content="Disconnect" HorizontalAlignment="Center" Margin="0,106,0,0" VerticalAlignment="Top" Width="68" Click="btnDisconnect_Click" RenderTransformOrigin="0.482,-0.128" Height="20"/>
     </Grid>
 </Window>

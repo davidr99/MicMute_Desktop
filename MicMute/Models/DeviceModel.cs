@@ -8,8 +8,8 @@ namespace MicMute.Models
 {
     public class DeviceModel
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
 
         public override string ToString()
         {
