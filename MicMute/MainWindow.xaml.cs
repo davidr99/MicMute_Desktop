@@ -243,8 +243,8 @@ namespace MicMute
 
         private MMDevice getPrimaryMicDevice()
         {
-            var enumerator = new MMDeviceEnumerator();
-            var result = enumerator.GetDefaultAudioEndpoint(EDataFlow.eCapture, ERole.eCommunications);
+            var enumerator = new MMDeviceEnumerator(Guid.NewGuid());
+            var result = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
 
             return result;
         }

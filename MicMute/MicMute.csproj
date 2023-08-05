@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -29,10 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreAudio" Version="1.10.0" />
+    <PackageReference Include="CoreAudio" Version="1.27.0" />
     <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
