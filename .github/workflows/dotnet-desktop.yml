@@ -22,6 +22,11 @@ jobs:
       Build_Date: ${{ github.event.repository.updated_at}}
 
     steps:
+    - name: Get Time
+      run: |
+        echo "DATE=$( date +\"%Y%m%d-%H%M%S\")" >> $GITHUB_OUTPUT
+      id: time    
+      
     - name: Checkout
       uses: actions/checkout@v3
       with:
@@ -41,7 +46,7 @@ jobs:
       run: mkdir "${{ github.workspace }}\Release"
       
     - name: Zip Release Folder
-      run: Compress-Archive -Path "${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\*" -Destination "${{ github.workspace }}\Release\nightly-build-${{ env.Build_Date}}.zip"
+      run: Compress-Archive -Path "${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\*" -Destination "${{ github.workspace }}\Release\nightly-build-${{ steps.time.outputs.DATE }}.zip"
 
     - name: Upload the artifact
       uses: actions/upload-artifact@v1
@@ -75,6 +80,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: nightly-build-${{ env.Build_Date}}
-        asset_name: nightly-build-${{ env.Build_Date}}
+        asset_path: nightly-build-${{ steps.time.outputs.DATE }}
+        asset_name: nightly-build-${{ steps.time.outputs.DATE }}
         asset_content_type: application/zip
