@@ -41,5 +41,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Release
-        path: ${{ github.workspace }}\bin\Release\net6.0-windows\publish\
+        path: ${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\
         if-no-files-found: error
