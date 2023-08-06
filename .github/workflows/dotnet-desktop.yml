@@ -20,22 +20,12 @@ jobs:
     env:
       Solution_Name: MicMute                         # Replace with your solution name, i.e. MyWpfApp.sln.
 
-    steps:
-    - name: Test Env
-      id: test
-      run: |
-        echo "Test=Test1" >> $env:GITHUB_ENV
-        
+    steps:        
     - name: Get Time
       id: time
       shell: powershell
       run: |
         echo "BuildDate=$( date +"%Y%m%d-%H%M%S")" >> $env:GITHUB_ENV
-
-    - name: Test Time
-      run: |
-        echo "BuildDate = ${{ env.BuildDate }}"
-        echo "Test = ${{ env.Test }}"
       
     - name: Checkout
       uses: actions/checkout@v3
@@ -73,7 +63,7 @@ jobs:
         tag_name: Nightly-${{ env.BuildDate }}
         release_name: Nightly Release
         body: |
-          Latest Build
+          ${{ github.event.head_commit.message }}
         draft: false
         prerelease: true
 
