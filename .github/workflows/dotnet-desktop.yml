@@ -34,11 +34,12 @@ jobs:
 
     # Build project
     - name: Build .net
-      run: dotnet publish -p:PublishProfile=.\Publish -c release
+      run: dotnet publish -p:PublishProfile=.\Publish -c $configuration
 
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: Release
-        path: bin\Release\net6.0-windows\publish
+        path: ${{ github.workspace }}\bin\Release\net6.0-windows\publish\
+        if-no-files-found: error
