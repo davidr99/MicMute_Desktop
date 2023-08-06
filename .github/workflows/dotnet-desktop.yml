@@ -19,6 +19,7 @@ jobs:
 
     env:
       Solution_Name: MicMute                         # Replace with your solution name, i.e. MyWpfApp.sln.
+      Build_Date: ${{ github.event.repository.updated_at}}
 
     steps:
     - name: Checkout
@@ -40,7 +41,7 @@ jobs:
       run: mkdir "${{ github.workspace }}\Release"
       
     - name: Zip Release Folder
-      run: Compress-Archive -Path "${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\*" -Destination "${{ github.workspace }}\Release\nightly-build.zip"
+      run: Compress-Archive -Path "${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\*" -Destination "${{ github.workspace }}\Release\nightly-build-${{ env.Build_Date}}.zip"
 
     - name: Upload the artifact
       uses: actions/upload-artifact@v1
@@ -54,8 +55,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
-        tag_name: Nightly
-        release_name: Release Nightly
+        tag_name: Nightly-${{ env.Build_Date}}
+        release_name: Nightly Release
         body: |
           Latest Build
         draft: false
@@ -74,6 +75,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: nightly-build.zip
-        asset_name: nightly-build.zip
+        asset_path: nightly-build-${{ env.Build_Date}}
+        asset_name: nightly-build-${{ env.Build_Date}}
         asset_content_type: application/zip
