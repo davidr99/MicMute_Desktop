@@ -19,9 +19,12 @@ jobs:
 
     env:
       Solution_Name: MicMute                         # Replace with your solution name, i.e. MyWpfApp.sln.
-      Build_Date: ${{ github.event.repository.updated_at}}
 
     steps:
+    - name: Test Env
+      run: |
+        echo "Test=Test1" >> $GITHUB_ENV
+        
     - name: Get Time
       shell: powershell
       run: |
