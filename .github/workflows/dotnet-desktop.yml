@@ -34,7 +34,7 @@ jobs:
 
     # Build project
     - name: Build .net
-      run: dotnet publish -p:PublishProfile=.\Publish
+      run: dotnet publish -p:PublishProfile=.\Publish -c release
 
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
     - name: Upload build artifacts
