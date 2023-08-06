@@ -22,16 +22,20 @@ jobs:
 
     steps:
     - name: Test Env
+      id: test
       run: |
         echo "Test=Test1" >> $GITHUB_ENV
         
     - name: Get Time
+      id: time
       shell: powershell
       run: |
         echo "BuildDate=$( date +"%Y%m%d-%H%M%S")" >> $GITHUB_ENV
 
     - name: Test Time
-      run: echo "BuildDate = ${{ env.BuildDate }}"
+      run: |
+        echo "BuildDate = ${{ env.BuildDate }}"
+        echo "Test = ${{ env.Test }}"
       
     - name: Checkout
       uses: actions/checkout@v3
