@@ -36,10 +36,29 @@ jobs:
     - name: Build .net
       run: dotnet publish -p:PublishProfile=.\Publish -c Release
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
-        name: Release
-        path: ${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\
-        if-no-files-found: error
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Latest Build
+        draft: false
+        prerelease: true
+
+    - name: Zip Release Folder
+      run: zip -r nightly-build.zip ${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\
+        
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\
+        asset_name: nightly-build.zip
+        asset_content_type: application/zip
