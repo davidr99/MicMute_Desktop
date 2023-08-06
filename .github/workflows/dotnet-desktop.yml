@@ -23,6 +23,7 @@ jobs:
 
     steps:
     - name: Get Time
+      shell: powershell
       run: |
         echo "BuildDate=$( date +"%Y%m%d-%H%M%S")" >> $GITHUB_ENV
 
