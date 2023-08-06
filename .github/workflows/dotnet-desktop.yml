@@ -24,13 +24,13 @@ jobs:
     - name: Test Env
       id: test
       run: |
-        echo "Test=Test1" >> $GITHUB_ENV
+        echo "Test=Test1" >> $env:GITHUB_ENV
         
     - name: Get Time
       id: time
       shell: powershell
       run: |
-        echo "BuildDate=$( date +"%Y%m%d-%H%M%S")" >> $GITHUB_ENV
+        echo "BuildDate=$( date +"%Y%m%d-%H%M%S")" >> $env:GITHUB_ENV
 
     - name: Test Time
       run: |
