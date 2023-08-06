@@ -37,7 +37,7 @@ jobs:
       run: dotnet publish -p:PublishProfile=.\Publish -c Release
 
     - name: Zip Release Folder
-      run: Compress-Archive -Path "${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\*" -Destination nightly-build.zip
+      run: Compress-Archive -Path "${{ github.workspace }}\MicMute\bin\Release\net6.0-windows\publish\*" -Destination "${{ github.workspace }}\nightly-build.zip"
 
     - name: Create Release
       id: create_release
