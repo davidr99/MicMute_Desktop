@@ -33,7 +33,7 @@ namespace MicMute
     /// </summary>
     public partial class MainWindow : Window
     {
-        IMuteDriver muteDriver = new SerialMuteDevice();
+        IMuteButtonDriver muteDriver = new SerialMuteButtonDevice();
         IMicDriver micDriver = new MicDriver();
 
         bool _muted = false;
@@ -94,7 +94,7 @@ namespace MicMute
         {
             if (deviceList.SelectedItem != null)
             {
-                IMuteDevice deviceModel = (deviceList.SelectedItem as IMuteDevice)!;
+                IMuteButtonDeviceData deviceModel = (deviceList.SelectedItem as IMuteButtonDeviceData)!;
 
                 (bool error, string errorMsg) = muteDriver.Connect(deviceModel);
 
@@ -153,11 +153,11 @@ namespace MicMute
 
             if (cbUseSerial?.IsChecked ?? false)
             {
-                muteDriver = new SerialMuteDevice();
+                muteDriver = new SerialMuteButtonDevice();
             }
             else
             {
-                muteDriver = new HIDMuteDevice();
+                muteDriver = new HIDMuteButtonDevice();
             }
 
             setupDriver();
@@ -200,7 +200,7 @@ namespace MicMute
 
         #region Mic Stuff
 
-        private void MicDriver_Notification(object? sender, MicNotificationData data)
+        private void MicDriver_Notification(object? sender, MicNotificationDataEvent data)
         {
             muted = data.Muted;
         }

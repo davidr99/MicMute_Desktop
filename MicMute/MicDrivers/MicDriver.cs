@@ -1,4 +1,5 @@
 ﻿using CoreAudio;
+using MicMute.Events;
 using MicMute.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace MicMute.MicDrivers
 
         protected MMDevice mic = null!;
 
-        public event EventHandler<MicNotificationData>? MicNotification;
+        public event EventHandler<MicNotificationDataEvent>? MicNotification;
 
         public void Cleanup()
         {
@@ -86,7 +87,7 @@ namespace MicMute.MicDrivers
 
         private void AudioEndpointVolume_OnVolumeNotification(AudioVolumeNotificationData data)
         {
-            MicNotification?.Invoke(this, new MicNotificationData()
+            MicNotification?.Invoke(this, new MicNotificationDataEvent()
             {
                 Muted = Muted
             });

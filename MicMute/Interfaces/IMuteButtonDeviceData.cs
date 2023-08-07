@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace MicMute.Interfaces
 {
-    internal interface IMuteDevice
+    internal interface IMuteButtonDeviceData
     {
         string DisplayName { get; set; }
         string Value { get; set; }

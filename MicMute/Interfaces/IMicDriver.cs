@@ -1,5 +1,5 @@
 ﻿using CoreAudio;
-using MicMute.MicDrivers;
+using MicMute.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,6 @@ namespace MicMute.Interfaces
         public void ToggleMute();
 
         public bool Muted { get; }
-        event EventHandler<MicNotificationData> MicNotification;
+        event EventHandler<MicNotificationDataEvent> MicNotification;
     }
 }

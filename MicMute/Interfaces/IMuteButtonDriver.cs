@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace MicMute.Interfaces
 {
-    internal interface IMuteDriver
+    internal interface IMuteButtonDriver
     {
         void Init();
         bool AutoConnect();
-        (bool error, string errorMsg) Connect(IMuteDevice device);
+        (bool error, string errorMsg) Connect(IMuteButtonDeviceData device);
         void WriteLED(LEDEnum ledStatus);
-        List<IMuteDevice> GetDeviceList();
+        List<IMuteButtonDeviceData> GetDeviceList();
         void CloseDevice();
 
 

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MicMute.MicDrivers
+namespace MicMute.Events
 {
-    internal class MicNotificationData
+    internal class MicNotificationDataEvent
     {
         public bool Muted { get; set; }
     }

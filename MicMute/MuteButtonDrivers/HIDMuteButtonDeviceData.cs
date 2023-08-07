@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace MicMute.MuteDeviceDrivers
 {
-    internal class HIDMuteDeviceData : IMuteDevice
+    internal class HIDMuteButtonDeviceData : IMuteButtonDeviceData
     {
         public string DisplayName { get; set; } = String.Empty;
         public string Value { get; set; } = String.Empty;

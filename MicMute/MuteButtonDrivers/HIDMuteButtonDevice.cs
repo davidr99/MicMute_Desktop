@@ -14,7 +14,7 @@ using MicMute.Events;
 
 namespace MicMute.MuteDeviceDrivers
 {
-    internal class HIDMuteDevice : IMuteDriver
+    internal class HIDMuteButtonDevice : IMuteButtonDriver
     {
         public static UsbDeviceFinder MyUsbFinder = new UsbDeviceFinder(0x2E8A, 0x00C0);
 
@@ -26,7 +26,7 @@ namespace MicMute.MuteDeviceDrivers
 
         public event EventHandler<MuteButtonPressEvent>? ButtonPressEvent;
 
-        public (bool error, string errorMsg) Connect(IMuteDevice device)
+        public (bool error, string errorMsg) Connect(IMuteButtonDeviceData device)
         {
             var selectedDevice = LibUsbDevice.AllDevices.Where(d => d.DevicePath == device.Value).FirstOrDefault()!;
 
@@ -74,15 +74,15 @@ namespace MicMute.MuteDeviceDrivers
             }
         }
 
-        public List<IMuteDevice> GetDeviceList()
+        public List<IMuteButtonDeviceData> GetDeviceList()
         {
             var devList = LibUsbDevice.AllDevices.Where(d => d is LibUsbRegistry && MyUsbFinder.Check(d));
 
-            return devList.Select(d => new HIDMuteDeviceData()
+            return devList.Select(d => new HIDMuteButtonDeviceData()
             {
                 DisplayName = d.Name,
                 Value = d.DevicePath
-            }).ToList<IMuteDevice>();
+            }).ToList<IMuteButtonDeviceData>();
         }
 
         public bool AutoConnect()

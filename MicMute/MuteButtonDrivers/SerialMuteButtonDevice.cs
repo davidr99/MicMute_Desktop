@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MicMute.MuteDeviceDrivers
 {
-    internal class SerialMuteDevice : IMuteDriver
+    internal class SerialMuteButtonDevice : IMuteButtonDriver
     {
         private SerialPort? _port;
 
@@ -25,7 +25,7 @@ namespace MicMute.MuteDeviceDrivers
             }
         }
 
-        public (bool error, string errorMsg) Connect(IMuteDevice device)
+        public (bool error, string errorMsg) Connect(IMuteButtonDeviceData device)
         {
             CloseDevice();
 
@@ -54,15 +54,15 @@ namespace MicMute.MuteDeviceDrivers
             }
         }
 
-        public List<IMuteDevice> GetDeviceList()
+        public List<IMuteButtonDeviceData> GetDeviceList()
         {
             var ports = SerialPorts();
 
-            return ports.Select(p => new SerialMuteDeviceData()
+            return ports.Select(p => new SerialMuteButtonDeviceData()
             {
                 DisplayName = p,
                 Value = p
-            }).ToList<IMuteDevice>();
+            }).ToList<IMuteButtonDeviceData>();
         }
 
         public bool AutoConnect()
@@ -73,7 +73,7 @@ namespace MicMute.MuteDeviceDrivers
 
             if (port != null)
             {
-                (bool error, string errorMsg) = Connect(new SerialMuteDeviceData()
+                (bool error, string errorMsg) = Connect(new SerialMuteButtonDeviceData()
                 {
                     DisplayName = port,
                     Value = port

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MicMute.MuteDeviceDrivers
 {
-    internal class SerialMuteDeviceData : IMuteDevice
+    internal class SerialMuteButtonDeviceData : IMuteButtonDeviceData
     {
         public string DisplayName { get; set; } = String.Empty;
         public string Value { get; set; } = String.Empty;
