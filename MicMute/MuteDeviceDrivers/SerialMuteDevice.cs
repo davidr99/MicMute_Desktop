@@ -13,9 +13,9 @@ namespace MicMute.MuteDeviceDrivers
 {
     internal class SerialMuteDevice : IMuteDriver
     {
-        private SerialPort _port;
+        private SerialPort? _port;
 
-        public event EventHandler<MuteButtonPressEvent> ButtonPressEvent;
+        public event EventHandler<MuteButtonPressEvent>? ButtonPressEvent;
 
         public void CloseDevice()
         {
@@ -48,7 +48,7 @@ namespace MicMute.MuteDeviceDrivers
 
         private void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            if (_port.ReadByte() == 'P')
+            if (_port?.ReadByte() == 'P')
             {
                 ButtonPressEvent?.Invoke(this, new MuteButtonPressEvent());
             }

@@ -20,7 +20,7 @@ namespace MicMute.MicDrivers
 
         protected MMDevice mic = null!;
 
-        public event EventHandler<MicNotificationData> MicNotification;
+        public event EventHandler<MicNotificationData>? MicNotification;
 
         public void Cleanup()
         {

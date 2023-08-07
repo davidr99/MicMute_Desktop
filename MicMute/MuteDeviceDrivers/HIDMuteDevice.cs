@@ -24,7 +24,7 @@ namespace MicMute.MuteDeviceDrivers
 
         LEDEnum lastStatus { get; set; } = 0;
 
-        public event EventHandler<MuteButtonPressEvent> ButtonPressEvent;
+        public event EventHandler<MuteButtonPressEvent>? ButtonPressEvent;
 
         public (bool error, string errorMsg) Connect(IMuteDevice device)
         {
