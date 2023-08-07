@@ -2,7 +2,6 @@
 using LibUsbDotNet.Main;
 using LibUsbDotNet;
 using MicMute.Interfaces;
-using MicMute.Models;
 using MicMute.Objects;
 using System;
 using System.Collections.Generic;
@@ -84,6 +83,20 @@ namespace MicMute.MuteDeviceDrivers
                 DisplayName = d.Name,
                 Value = d.DevicePath
             }).ToList<IMuteDevice>();
+        }
+
+        public bool AutoConnect()
+        {
+            var devices = GetDeviceList();
+
+            if (devices.Count == 1) 
+            {
+                (bool error, string errorMsg) = Connect(devices[0]);
+
+                return !error;
+            }
+
+            return false;
         }
 
         public void Init()

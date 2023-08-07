@@ -16,7 +16,6 @@ using LibUsbDotNet.Info;
 using LibUsbDotNet.LibUsb;
 using LibUsbDotNet.Main;
 using LibUsbDotNet;
-using MicMute.Models;
 using System.ComponentModel;
 using MicMute.Objects;
 using CoreAudio;
@@ -25,6 +24,7 @@ using System.Runtime.InteropServices;
 using MicMute.Interfaces;
 using MicMute.MuteDeviceDrivers;
 using MicMute.Events;
+using MicMute.MicDrivers;
 
 namespace MicMute
 {
@@ -33,11 +33,11 @@ namespace MicMute
     /// </summary>
     public partial class MainWindow : Window
     {
-        IMuteDriver muteDriver = new HIDMuteDevice();
+        IMuteDriver muteDriver = new SerialMuteDevice();
+        IMicDriver micDriver = new MicDriver();
 
         bool _muted = false;
         LEDEnum ledColor = 0;
-        MMDevice mic = null!;
 
         bool muted
         {
@@ -67,31 +67,22 @@ namespace MicMute
         {
             InitializeComponent();
 
-            mic = getPrimaryMicDevice();
-
-            if (mic != null)
-            {
-                mic.AudioEndpointVolume!.OnVolumeNotification += AudioEndpointVolume_OnVolumeNotification;
-            }
+            micDriver.Init();
+            micDriver.MicNotification += MicDriver_Notification;
 
             btnDisconnect.Visibility = Visibility.Hidden;
             setupDriver();
         }
 
+
         private void MuteButtonPress_Event(object? sender, MuteButtonPressEvent e)
         {
-            var mic = getPrimaryMicDevice();
-
-            if (mic != null && mic.AudioEndpointVolume != null)
-            {
-                mic.AudioEndpointVolume.Mute = !mic.AudioEndpointVolume.Mute;
-                muted = mic.AudioEndpointVolume.Mute;
-            }
+            micDriver.ToggleMute();
         }
 
         private void MicCheckTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            muted = GetMicStatus();
+            muted = micDriver.Muted;
         }
 
         private void btnLoadDevices_Click(object sender, RoutedEventArgs e)
@@ -118,7 +109,7 @@ namespace MicMute
                     btnDisconnect.Visibility = Visibility.Visible;
                 }
 
-                muted = GetMicStatus();
+                muted = micDriver.Muted;
             }
         }
 
@@ -130,6 +121,7 @@ namespace MicMute
             btnDisconnect.Visibility = Visibility.Hidden;
             btnSelectDevice.Visibility = Visibility.Visible;
         }
+
         private void deviceList_Loaded(object sender, RoutedEventArgs e)
         {
             loadDevices();
@@ -181,6 +173,12 @@ namespace MicMute
 
         private void setupDriver()
         {
+            if (muteDriver.AutoConnect())
+            {
+                deviceList.IsEnabled = false;
+                btnSelectDevice.Visibility = Visibility.Hidden;
+                btnDisconnect.Visibility = Visibility.Visible;
+            }
             muteDriver.ButtonPressEvent += MuteButtonPress_Event;
         }
 
@@ -202,29 +200,7 @@ namespace MicMute
 
         #region Mic Stuff
 
-        private MMDevice getPrimaryMicDevice()
-        {
-            var enumerator = new MMDeviceEnumerator(Guid.NewGuid());
-            var result = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
-
-            return result;
-        }
-
-        private bool GetMicStatus()
-        {
-            bool micStatus = false;
-
-            var mic = getPrimaryMicDevice();
-
-            if (mic != null)
-            {
-                micStatus = mic.AudioEndpointVolume!.Mute;
-            }
-
-            return micStatus;
-        }
-
-        private void AudioEndpointVolume_OnVolumeNotification(AudioVolumeNotificationData data)
+        private void MicDriver_Notification(object? sender, MicNotificationData data)
         {
             muted = data.Muted;
         }

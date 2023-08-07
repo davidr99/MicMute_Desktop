@@ -12,6 +12,7 @@ namespace MicMute.Interfaces
     internal interface IMuteDriver
     {
         void Init();
+        bool AutoConnect();
         (bool error, string errorMsg) Connect(IMuteDevice device);
         void WriteLED(LEDEnum ledStatus);
         List<IMuteDevice> GetDeviceList();

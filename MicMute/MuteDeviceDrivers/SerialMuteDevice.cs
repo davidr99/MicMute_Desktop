@@ -65,6 +65,26 @@ namespace MicMute.MuteDeviceDrivers
             }).ToList<IMuteDevice>();
         }
 
+        public bool AutoConnect()
+        {
+            var ports = SerialPorts();
+
+            var port = AutoDetect(ports);
+
+            if (port != null)
+            {
+                (bool error, string errorMsg) = Connect(new SerialMuteDeviceData()
+                {
+                    DisplayName = port,
+                    Value = port
+                });
+
+                return !error;
+            }
+
+            return false;
+        }
+
         public void Init()
         {
 
