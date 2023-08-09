@@ -90,7 +90,7 @@ namespace MicMute.MuteDeviceDrivers
 
         }
 
-        public void WriteLED(LEDEnum ledStatus)
+        public bool WriteLED(LEDEnum ledStatus)
         {
             if (_port?.IsOpen ?? false)
             {
@@ -101,9 +101,11 @@ namespace MicMute.MuteDeviceDrivers
                 }
                 catch(Exception ex)
                 {
-
+                    return false;
                 }
             }
+
+            return true;
         }
 
         private List<String> SerialPorts()

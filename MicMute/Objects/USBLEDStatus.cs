@@ -11,9 +11,12 @@ namespace MicMute.Objects
     public struct USBLEDStatus
     {
         [FieldOffset(0)]
-        public byte ReportID;
+        public byte Length;
 
         [FieldOffset(1)]
+        public byte ReportID;
+
+        [FieldOffset(2)]
         public LEDEnum Status;
     }
 }

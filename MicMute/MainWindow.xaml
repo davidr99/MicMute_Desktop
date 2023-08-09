@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MicMute"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="Mute Mic" Height="172" Width="311" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False">
+        Title="Mute Mic" Height="169" Width="335" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False" Closing="Window_Closing">
     <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,0,3">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -37,7 +37,10 @@
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
         <Rectangle x:Name="ledDisplay" Grid.Column="2" HorizontalAlignment="Left" Height="20" Margin="66,53,0,0" Stroke="Black" VerticalAlignment="Top" Width="20" RadiusX="10" RadiusY="10" RenderTransformOrigin="0.625,1.646"/>
-        <CheckBox x:Name="cbUseSerial" Content="User Serial" HorizontalAlignment="Center" Margin="0,109,0,0" VerticalAlignment="Top" Grid.Column="2" Click="cbUseSerial_Click" Height="15" Width="76" IsChecked="True"/>
         <Button x:Name="btnDisconnect" Grid.Column="1" Content="Disconnect" HorizontalAlignment="Center" Margin="0,106,0,0" VerticalAlignment="Top" Width="68" Click="btnDisconnect_Click" RenderTransformOrigin="0.482,-0.128" Height="20"/>
+        <ComboBox x:Name="cbDeviceType" Grid.Column="2" HorizontalAlignment="Left" Margin="8,106,0,0" VerticalAlignment="Top" Width="88" SelectedIndex="0" Height="20" RenderTransformOrigin="0.525,0.439" DropDownClosed="cbDeviceType_DropDownClosed">
+            <ComboBoxItem Content="HID Device"/>
+            <ComboBoxItem Content="Serial Dev"/>
+        </ComboBox>
     </Grid>
 </Window>

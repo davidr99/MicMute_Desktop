@@ -1,7 +1,4 @@
-﻿using LibUsbDotNet.LibUsb;
-using LibUsbDotNet.Main;
-using LibUsbDotNet;
-using MicMute.Interfaces;
+﻿using MicMute.Interfaces;
 using MicMute.Objects;
 using System;
 using System.Collections.Generic;
@@ -11,76 +8,103 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using MicMute.Events;
+using HidSharp;
 
 namespace MicMute.MuteDeviceDrivers
 {
     internal class HIDMuteButtonDevice : IMuteButtonDriver
     {
-        public static UsbDeviceFinder MyUsbFinder = new UsbDeviceFinder(0x2E8A, 0x00C0);
-
-        UsbDevice usbDevice = null!;
-        UsbEndpointReader reader = null!;
-        UsbEndpointWriter writer = null!;
-
+        static int VendorId = 0x2E8A;
+        static int ProductId = 0x00C0;
         LEDEnum lastStatus { get; set; } = 0;
+
+        HidDevice _hidDevice = null!;
+        HidStream _hidStream = null!;
+
+        IAsyncResult _asyncReadResult = null;
+
+        byte[] _usbReadBuffer = new byte[32];
 
         public event EventHandler<MuteButtonPressEvent>? ButtonPressEvent;
 
         public (bool error, string errorMsg) Connect(IMuteButtonDeviceData device)
         {
-            var selectedDevice = LibUsbDevice.AllDevices.Where(d => d.DevicePath == device.Value).FirstOrDefault()!;
+            var devices = DeviceList.Local;
 
-            if (selectedDevice != null && !selectedDevice.Open(out usbDevice))
+            if (!devices.TryGetHidDevice(out _hidDevice, VendorId, ProductId) ||
+                !_hidDevice.TryOpen(out _hidStream))
             {
                 return (true, "Error opening USB device!");
             }
-            else if (selectedDevice == null)
-            {
-                return (true, "Error Could not find device!");
-            }
 
-            if (usbDevice != null && usbDevice.IsOpen)
-            {
-                ((IUsbDevice)usbDevice).SetConfiguration(1);
-                ((IUsbDevice)usbDevice).ClaimInterface(0);
-
-                writer = usbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
-                reader = usbDevice.OpenEndpointReader(ReadEndpointID.Ep01);
-
-                reader.ReadFlush();
-
-                reader.DataReceivedEnabled = true;
-                reader.DataReceived += reader_DataReceived;
-
-                WriteLED(lastStatus);
-            }
+            _asyncReadResult = _hidStream.BeginRead(_usbReadBuffer, 0, _usbReadBuffer.Length, new AsyncCallback(data_Ready), null);
 
             return (false, String.Empty);
         }
 
-        public void WriteLED(LEDEnum ledStatus)
+        private void data_Ready(IAsyncResult ar)
+        {
+            try
+            {
+                int bytes = _hidStream.EndRead(_asyncReadResult);
+
+                if (bytes > 0)
+                {
+                    if (_usbReadBuffer[2] == 1)
+                    {
+                        ButtonPressEvent?.Invoke(this, new MuteButtonPressEvent());
+                    }
+                }
+            }
+            catch (TimeoutException timeoutEx)
+            {
+
+            }
+            catch { }
+            finally
+            {
+                // Read next report!
+                _asyncReadResult = _hidStream.BeginRead(_usbReadBuffer, 0, _usbReadBuffer.Length, new AsyncCallback(data_Ready), null);
+            }
+
+        }
+
+        public bool WriteLED(LEDEnum ledStatus)
         {
             lastStatus = ledStatus;
 
-            if (usbDevice != null && usbDevice.IsOpen && !writer.IsDisposed)
+            if (_hidStream != null)
             {
-                byte[] buffer = writeBuffer<USBLEDStatus>(new USBLEDStatus()
-                {
-                    ReportID = 0x05,
-                    Status = ledStatus
-                });
+                byte[] buffer = new byte[32];
 
-                writer.SubmitAsyncTransfer(buffer, 0, 2, 1000, out UsbTransfer usbTransfer);
+                buffer[0] = (byte) 0x02;            // Lenght
+                buffer[1] = (byte) 0x02;            // Report Type 0x02 = LED Status
+                buffer[2] = (byte) ledStatus;       // 0x01 = Red | 0x02 = Green | 0x04 = Blue
+
+                try
+                {
+                    _hidStream.Write(buffer, 0, buffer.Length);
+                }
+                catch 
+                { 
+                    return false;
+                }
             }
+
+            return true;
         }
 
         public List<IMuteButtonDeviceData> GetDeviceList()
         {
-            var devList = LibUsbDevice.AllDevices.Where(d => d is LibUsbRegistry && MyUsbFinder.Check(d));
+            var devList = DeviceList.Local.GetAllDevices()
+                                    .OfType<HidDevice>()
+                                    .ToList<HidDevice>()
+                                    .Where(d => d.ProductID == ProductId)
+                                    .ToList();
 
             return devList.Select(d => new HIDMuteButtonDeviceData()
             {
-                DisplayName = d.Name,
+                DisplayName = d.GetFriendlyName(),
                 Value = d.DevicePath
             }).ToList<IMuteButtonDeviceData>();
         }
@@ -106,44 +130,19 @@ namespace MicMute.MuteDeviceDrivers
 
         public void CloseDevice()
         {
-            if (usbDevice != null)
+            if (_hidStream != null)
             {
-                usbDevice.Close();
+                if (_asyncReadResult != null)
+                {
+                    try
+                    {
+                        _hidStream.EndRead(_asyncReadResult);
+                    }
+                    catch { }
+                }
+
+                _hidStream.Close();
             }
-        }
-
-        private void reader_DataReceived(object? sender, EndpointDataEventArgs e)
-        {
-            var keyboardMessage = readBuffer<USBKeyboardMessage>(e.Buffer);
-            if (keyboardMessage.ReportId == 0x01 && keyboardMessage.Key == 0x10)
-            {
-                ButtonPressEvent?.Invoke(this, new MuteButtonPressEvent());
-            }
-        }
-
-        private static T readBuffer<T>(byte[] data) where T : struct
-        {
-            T dataObject;
-            int size = Marshal.SizeOf<T>();
-            IntPtr ptr = Marshal.AllocHGlobal(size);
-            Marshal.Copy(data, 0, ptr, size);
-            dataObject = (T)Marshal.PtrToStructure(ptr, typeof(T))!;
-            Marshal.FreeHGlobal(ptr);
-
-            return dataObject;
-        }
-
-        private static byte[] writeBuffer<T>(T status) where T : struct
-        {
-            int size = Marshal.SizeOf<T>();
-            byte[] packet = new byte[size];
-
-            IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(status));
-            Marshal.StructureToPtr<T>(status, ptr, true);
-            Marshal.Copy(ptr, packet, 0, size);
-            Marshal.FreeHGlobal(ptr);
-
-            return packet;
         }
     }
 }

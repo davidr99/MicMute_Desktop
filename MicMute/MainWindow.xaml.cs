@@ -12,10 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using LibUsbDotNet.Info;
-using LibUsbDotNet.LibUsb;
-using LibUsbDotNet.Main;
-using LibUsbDotNet;
 using System.ComponentModel;
 using MicMute.Objects;
 using CoreAudio;
@@ -33,7 +29,7 @@ namespace MicMute
     /// </summary>
     public partial class MainWindow : Window
     {
-        IMuteButtonDriver muteDriver = new SerialMuteButtonDevice();
+        IMuteButtonDriver muteDriver = new HIDMuteButtonDevice();
         IMicDriver micDriver = new MicDriver();
 
         bool _muted = false;
@@ -70,7 +66,7 @@ namespace MicMute
             micDriver.Init();
             micDriver.MicNotification += MicDriver_Notification;
 
-            btnDisconnect.Visibility = Visibility.Hidden;
+            disconnect();
             setupDriver();
         }
 
@@ -117,9 +113,7 @@ namespace MicMute
         {
             muteDriver.CloseDevice();
 
-            deviceList.IsEnabled = true;
-            btnDisconnect.Visibility = Visibility.Hidden;
-            btnSelectDevice.Visibility = Visibility.Visible;
+            disconnect();
         }
 
         private void deviceList_Loaded(object sender, RoutedEventArgs e)
@@ -147,15 +141,15 @@ namespace MicMute
             WriteLED(ledColor);
         }
 
-        private void cbUseSerial_Click(object sender, RoutedEventArgs e)
+        private void cbDeviceType_DropDownClosed(object sender, EventArgs e)
         {
             muteDriver?.CloseDevice();
 
-            if (cbUseSerial?.IsChecked ?? false)
+            if (cbDeviceType.SelectedItem.ToString()!.Contains("Serial"))
             {
                 muteDriver = new SerialMuteButtonDevice();
             }
-            else
+            else if (cbDeviceType.SelectedItem.ToString()!.Contains("HID"))
             {
                 muteDriver = new HIDMuteButtonDevice();
             }
@@ -182,9 +176,20 @@ namespace MicMute
             muteDriver.ButtonPressEvent += MuteButtonPress_Event;
         }
 
+        private void disconnect()
+        {
+            deviceList.IsEnabled = true;
+            btnSelectDevice.Visibility = Visibility.Visible;
+            btnDisconnect.Visibility = Visibility.Hidden;
+        }
+
         private void WriteLED(LEDEnum ledStatus)
         {
-            muteDriver.WriteLED(ledStatus);
+            if (!muteDriver.WriteLED(ledStatus))
+            {
+                disconnect();
+                MessageBox.Show("Try and reconnect", "Error connecting to device.", MessageBoxButton.OK);
+            }
 
             this.Dispatcher.Invoke(() =>
             {
@@ -245,5 +250,11 @@ namespace MicMute
         }
 
         #endregion Tray Stuff
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            muteDriver.CloseDevice();
+        }
+
     }
 }

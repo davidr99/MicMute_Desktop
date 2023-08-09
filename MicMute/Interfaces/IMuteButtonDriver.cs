@@ -14,7 +14,7 @@ namespace MicMute.Interfaces
         void Init();
         bool AutoConnect();
         (bool error, string errorMsg) Connect(IMuteButtonDeviceData device);
-        void WriteLED(LEDEnum ledStatus);
+        bool WriteLED(LEDEnum ledStatus);
         List<IMuteButtonDeviceData> GetDeviceList();
         void CloseDevice();
 
