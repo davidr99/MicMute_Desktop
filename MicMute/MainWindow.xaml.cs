@@ -182,10 +182,7 @@ namespace MicMute
 
         private void setupDriver()
         {
-            if (muteDriver.AutoConnect())
-            {
-                isConnected = true;
-            }
+            autoConnect();
             muteDriver.ButtonPressEvent += MuteButtonPress_Event;
             muteDriver.HasErrorEvent += MuteButtonHasError_Event;
         }
@@ -198,6 +195,22 @@ namespace MicMute
         private void disconnect()
         {
             isConnected = false;
+        }
+
+        private void updateButtonStatus()
+        {
+            muted = _muted;
+        }
+
+        private bool autoConnect()
+        {
+            if (muteDriver.AutoConnect())
+            {
+                isConnected = true;
+                updateButtonStatus();
+            }
+
+            return isConnected;
         }
 
         private void WriteLED(LEDEnum ledStatus)
@@ -218,7 +231,6 @@ namespace MicMute
                 ledDisplay.Fill = new SolidColorBrush(color);
             });
         }
-
 
         #region Mic Stuff
 
@@ -310,10 +322,7 @@ namespace MicMute
                         if (!isConnected)
                         {
                             loadDevices();
-                            if (muteDriver.AutoConnect())
-                            {
-                                isConnected = true;
-                            }
+                            autoConnect();
                         }
                         break;
                 }
