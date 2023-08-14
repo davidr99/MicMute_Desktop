@@ -16,9 +16,13 @@ namespace MicMute.MuteDeviceDrivers
         private SerialPort? _port;
 
         public event EventHandler<MuteButtonPressEvent>? ButtonPressEvent;
+        public event EventHandler<HasErrorEvent>? HasErrorEvent;
+
+        bool isConnected { get; set; }
 
         public void CloseDevice()
         {
+            isConnected = false;
             if (_port?.IsOpen ?? false) 
             { 
                 _port?.Close();
@@ -42,6 +46,8 @@ namespace MicMute.MuteDeviceDrivers
             _port.ReadTimeout = 1000;
 
             _port.DataReceived += port_DataReceived;
+
+            isConnected = true;
 
             return (false, String.Empty);
         }
@@ -101,6 +107,12 @@ namespace MicMute.MuteDeviceDrivers
                 }
                 catch(Exception ex)
                 {
+                    isConnected = false;
+
+                    HasErrorEvent?.Invoke(this, new HasErrorEvent() {
+                        Error = ex.Message,
+                    });
+
                     return false;
                 }
             }

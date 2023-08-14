@@ -23,9 +23,12 @@ namespace MicMute.MuteDeviceDrivers
 
         IAsyncResult _asyncReadResult = null;
 
+        bool isConnected { get; set; }
+
         byte[] _usbReadBuffer = new byte[32];
 
         public event EventHandler<MuteButtonPressEvent>? ButtonPressEvent;
+        public event EventHandler<HasErrorEvent>? HasErrorEvent;
 
         public (bool error, string errorMsg) Connect(IMuteButtonDeviceData device)
         {
@@ -38,6 +41,8 @@ namespace MicMute.MuteDeviceDrivers
             }
 
             _asyncReadResult = _hidStream.BeginRead(_usbReadBuffer, 0, _usbReadBuffer.Length, new AsyncCallback(data_Ready), null);
+
+            isConnected = true;
 
             return (false, String.Empty);
         }
@@ -58,15 +63,27 @@ namespace MicMute.MuteDeviceDrivers
             }
             catch (TimeoutException timeoutEx)
             {
-
+                // This happends while waiting for data
             }
-            catch { }
+            catch(System.IO.IOException ex)
+            {
+                // We got disconnected
+                isConnected = false;
+            }
+            catch(Exception ex)
+            { 
+                HasErrorEvent?.Invoke(this, new HasErrorEvent() {
+                    Error = ex.Message,
+                });
+            }
             finally
             {
-                // Read next report!
-                _asyncReadResult = _hidStream.BeginRead(_usbReadBuffer, 0, _usbReadBuffer.Length, new AsyncCallback(data_Ready), null);
+                if (isConnected)
+                {
+                    // Read next report!
+                    _asyncReadResult = _hidStream.BeginRead(_usbReadBuffer, 0, _usbReadBuffer.Length, new AsyncCallback(data_Ready), null);
+                }
             }
-
         }
 
         public bool WriteLED(LEDEnum ledStatus)
@@ -130,6 +147,8 @@ namespace MicMute.MuteDeviceDrivers
 
         public void CloseDevice()
         {
+            isConnected = false;
+
             if (_hidStream != null)
             {
                 if (_asyncReadResult != null)

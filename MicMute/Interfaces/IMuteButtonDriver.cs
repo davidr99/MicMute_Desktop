@@ -20,5 +20,6 @@ namespace MicMute.Interfaces
 
 
         event EventHandler<MuteButtonPressEvent> ButtonPressEvent;
+        event EventHandler<HasErrorEvent>? HasErrorEvent;
     }
 }

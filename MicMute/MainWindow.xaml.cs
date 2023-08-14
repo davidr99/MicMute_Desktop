@@ -21,6 +21,8 @@ using MicMute.Interfaces;
 using MicMute.MuteDeviceDrivers;
 using MicMute.Events;
 using MicMute.MicDrivers;
+using System.Diagnostics;
+using System.Windows.Interop;
 
 namespace MicMute
 {
@@ -34,6 +36,21 @@ namespace MicMute
 
         bool _muted = false;
         LEDEnum ledColor = 0;
+
+        bool isConnected 
+        {
+            get
+            {
+                return !deviceList.IsEnabled;
+            }
+            set
+            {
+                deviceList.IsEnabled = !value;
+                btnSelectDevice.Visibility = value ? Visibility.Hidden : Visibility.Visible;
+                btnDisconnect.Visibility = value ? Visibility.Visible : Visibility.Hidden;
+            }
+
+        }
 
         bool muted
         {
@@ -100,9 +117,7 @@ namespace MicMute
                 }
                 else
                 {
-                    deviceList.IsEnabled = false;
-                    btnSelectDevice.Visibility = Visibility.Hidden;
-                    btnDisconnect.Visibility = Visibility.Visible;
+                    isConnected = true;
                 }
 
                 muted = micDriver.Muted;
@@ -169,18 +184,20 @@ namespace MicMute
         {
             if (muteDriver.AutoConnect())
             {
-                deviceList.IsEnabled = false;
-                btnSelectDevice.Visibility = Visibility.Hidden;
-                btnDisconnect.Visibility = Visibility.Visible;
+                isConnected = true;
             }
             muteDriver.ButtonPressEvent += MuteButtonPress_Event;
+            muteDriver.HasErrorEvent += MuteButtonHasError_Event;
+        }
+
+        private void MuteButtonHasError_Event(object? sender, HasErrorEvent e)
+        {
+            MessageBox.Show(e.Error, "Connection Errror");
         }
 
         private void disconnect()
         {
-            deviceList.IsEnabled = true;
-            btnSelectDevice.Visibility = Visibility.Visible;
-            btnDisconnect.Visibility = Visibility.Hidden;
+            isConnected = false;
         }
 
         private void WriteLED(LEDEnum ledStatus)
@@ -256,5 +273,56 @@ namespace MicMute
             muteDriver.CloseDevice();
         }
 
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            AddUsbConnectEvent();
+        }
+
+        #region Detect USB Changes
+
+        private void AddUsbConnectEvent()
+        {
+            HwndSource hwndSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            if (hwndSource != null)
+            {
+                IntPtr windowHandle = hwndSource.Handle;
+                hwndSource.AddHook(UsbNotificationHandler);
+                USBDetector.RegisterUsbDeviceNotification(windowHandle);
+            }
+        }
+
+        private IntPtr UsbNotificationHandler(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        {
+            if (msg == USBDetector.UsbDevicechange)
+            {
+                switch ((int)wparam)
+                {
+                    case USBDetector.UsbDeviceRemoved:
+                        //MessageBox.Show("USB Removed");
+                        loadDevices();
+                        if (deviceList.Items.Count == 0)
+                        {
+                            muteDriver.CloseDevice();
+                            isConnected = false;
+                        }
+                        break;
+                    case USBDetector.NewUsbDeviceConnected:
+                        if (!isConnected)
+                        {
+                            loadDevices();
+                            if (muteDriver.AutoConnect())
+                            {
+                                isConnected = true;
+                            }
+                        }
+                        break;
+                }
+            }
+
+            handled = false;
+            return IntPtr.Zero;
+        }
+
+        #endregion
     }
 }
