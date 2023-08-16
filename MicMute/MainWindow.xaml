@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MicMute"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="Mute Mic" Height="169" Width="335" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False" Closing="Window_Closing">
+        Title="Mute Mic" Height="169" Width="335" ResizeMode="CanMinimize" Icon="/Icons/muted.ico" ShowInTaskbar="False" Closing="Window_Closing" Loaded="Window_Loaded">
     <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,0,3">
         <Grid.RowDefinitions>
             <RowDefinition/>
