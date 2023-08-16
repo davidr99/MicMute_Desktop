@@ -14,8 +14,12 @@ namespace MicMute.MuteDeviceDrivers
 {
     internal class HIDMuteButtonDevice : IMuteButtonDriver
     {
-        static int VendorId = 0x2E8A;
-        static int ProductId = 0x00C0;
+        static List<(int vendorId, int productId)> usbIds = new List<(int, int)>()
+        {
+            (0x2E8A, 0x00C0),
+            (0x239A,  0x8108)
+        };
+
         LEDEnum lastStatus { get; set; } = 0;
 
         HidDevice _hidDevice = null!;
@@ -31,10 +35,16 @@ namespace MicMute.MuteDeviceDrivers
         {
             var devices = DeviceList.Local;
 
-            if (!devices.TryGetHidDevice(out _hidDevice, VendorId, ProductId) ||
-                !_hidDevice.TryOpen(out _hidStream))
+
+            foreach ((var vendorId, var productId) in usbIds)
             {
-                return (true, "Error opening USB device!");
+                if (devices.TryGetHidDevice(out _hidDevice, vendorId, productId))
+                {
+                    if (!_hidDevice.TryOpen(out _hidStream))
+                    {
+                        return (true, "Error opening USB device!");
+                    }
+                }
             }
 
             _asyncReadResult = _hidStream.BeginRead(_usbReadBuffer, 0, _usbReadBuffer.Length, new AsyncCallback(data_Ready), null);
@@ -99,7 +109,7 @@ namespace MicMute.MuteDeviceDrivers
             var devList = DeviceList.Local.GetAllDevices()
                                     .OfType<HidDevice>()
                                     .ToList<HidDevice>()
-                                    .Where(d => d.ProductID == ProductId)
+                                    .Where(d => usbIds.Select(v => v.productId).Contains(d.ProductID))
                                     .ToList();
 
             return devList.Select(d => new HIDMuteButtonDeviceData()
