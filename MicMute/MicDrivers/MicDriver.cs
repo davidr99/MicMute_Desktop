@@ -55,11 +55,15 @@ namespace MicMute.MicDrivers
 
         private void MuteUnmute(bool? mute)
         {
-            var mic = getPrimaryMicDevice();
+            //var mic = getPrimaryMicDevice();
+            var mics = getAllMicDevices();
 
-            if (mic != null && mic.AudioEndpointVolume != null)
+            foreach(var mic in mics)
             {
-                mic.AudioEndpointVolume.Mute = mute ?? !mic.AudioEndpointVolume.Mute;
+                if (mic != null && mic.AudioEndpointVolume != null)
+                {
+                    mic.AudioEndpointVolume.Mute = mute ?? !mic.AudioEndpointVolume.Mute;
+                }
             }
         }
 
@@ -69,6 +73,14 @@ namespace MicMute.MicDrivers
             var result = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
 
             return result;
+        }
+
+        private List<MMDevice> getAllMicDevices()
+        {
+            var enumerator = new MMDeviceEnumerator(Guid.NewGuid());
+            var result = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
+
+            return result.ToList();
         }
 
         private bool GetMicStatus()

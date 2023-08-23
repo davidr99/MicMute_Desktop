@@ -83,6 +83,9 @@ namespace MicMute
             micDriver.Init();
             micDriver.MicNotification += MicDriver_Notification;
 
+            muteDriver.ButtonPressEvent += MuteButtonPress_Event;
+            muteDriver.HasErrorEvent += MuteButtonHasError_Event;
+
             disconnect();
             setupDriver();
         }
@@ -90,7 +93,16 @@ namespace MicMute
 
         private void MuteButtonPress_Event(object? sender, MuteButtonPressEvent e)
         {
-            micDriver.ToggleMute();
+            if (muted)
+            {
+                micDriver.Unmute();
+                muted = false;
+            }
+            else
+            {
+                micDriver.Mute();
+                muted = true;
+            }
         }
 
         private void MicCheckTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -183,8 +195,6 @@ namespace MicMute
         private void setupDriver()
         {
             autoConnect();
-            muteDriver.ButtonPressEvent += MuteButtonPress_Event;
-            muteDriver.HasErrorEvent += MuteButtonHasError_Event;
         }
 
         private void MuteButtonHasError_Event(object? sender, HasErrorEvent e)
